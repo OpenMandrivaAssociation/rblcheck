@@ -22,7 +22,6 @@ Patch3:		rblcheck-names.patch
 # Compile fix for x86_64 systems
 Patch4:		rblcheck-1.5-res_query.patch
 BuildRequires:	docbook-utils
-BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot
 
 %description
 Rblcheck is a lightweight C program for performing checks against RBL-style IP
