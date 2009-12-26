@@ -1,13 +1,12 @@
 Summary:	A program for performing checks against RBL-style blacklists
 Name:		rblcheck
 Version:	1.5
-Release:	%mkrel 12
+Release:	%mkrel 13
 License:	GPL
 Group:		Networking/Other
 URL:		http://rblcheck.sourceforge.net/
 Source0:	%{name}-%{version}.tar.bz2
 Source1:	rblcheckrc
-Patch0:		%{name}-%{version}-sites.patch
 # Change the text "RBL filtered by" to "listed by"
 # (RBL is a trademark of MAPS LLC.)
 # 'listed by' is more accurate
@@ -22,7 +21,7 @@ Patch3:		rblcheck-names.patch
 # Compile fix for x86_64 systems
 Patch4:		rblcheck-1.5-res_query.patch
 BuildRequires:	docbook-utils
-BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Rblcheck is a lightweight C program for performing checks against RBL-style IP
@@ -35,7 +34,6 @@ address from e-mail header. See %{_bindir}/origip-* and the documentation
 %prep
 
 %setup -q -n %{name}-%{version}
-%patch0 -p0
 %patch1 -p1 -b .texttweak
 %patch2 -p0 -b .txt
 %patch3 -p0 -b .names
@@ -60,6 +58,7 @@ mv docs/html/rblcheck html
 install -d %{buildroot}%{_bindir}
 install -d %{buildroot}%{_sysconfdir}
 
+install -m0755 rbl %{buildroot}%{_bindir}/
 install -m0755 rblcheck %{buildroot}%{_bindir}/
 install -m0755 utils/qmail/origip.awk %{buildroot}%{_bindir}/origip-qmail.awk
 install -m0755 utils/qmail/origip %{buildroot}%{_bindir}/origip-qmail
@@ -73,7 +72,6 @@ install -m0644 rblcheckrc %{buildroot}%{_sysconfdir}/rblcheckrc
 %defattr(-,root,root)
 %doc AUTHORS ChangeLog NEWS README html utils/test*.sh
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/rblcheckrc
+%{_bindir}/rbl
 %{_bindir}/rblcheck
 %{_bindir}/origip-*
-
-
