@@ -1,7 +1,7 @@
 Summary:	A program for performing checks against RBL-style blacklists
 Name:		rblcheck
 Version:	1.5
-Release:	%mkrel 13
+Release:	%mkrel 14
 License:	GPL
 Group:		Networking/Other
 URL:		http://rblcheck.sourceforge.net/
