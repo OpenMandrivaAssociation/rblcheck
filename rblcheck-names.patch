@@ -1,0 +1,150 @@
+--- rblcheck.c.orig	Mon Dec  2 07:07:10 2002
++++ rblcheck.c		Mon Dec  2 09:23:13 2002
+@@ -24,13 +24,16 @@
+ #include "config.h"
+ 
+ #include <stdio.h>
++#include <assert.h>
+ #include <string.h>
+ #include <sys/types.h>
+ #include <netinet/in.h>
+ #include <arpa/nameser.h>
++#include <arpa/inet.h>
+ #include <resolv.h>
+ #include <netdb.h>
+ 
++
+ /*-- PORTABILITY ------------------------------------------------------------*/
+ 
+ #ifdef STDC_HEADERS
+@@ -284,6 +287,104 @@
+ 	return result;
+ }
+ 
++static const char *printable_ipaddr(void *ipa)
++{
++struct in_addr	a;
++
++	memcpy(&a, ipa, 4);
++
++	return inet_ntoa(a);
++}
++
++/*
++ * lookup_target()
++ *
++ *	Given a "target", determine the IP address for it. If it's a regular IP
++ *	address, we just convert to binary form and return straightaway. If it's
++ *	a hostname, we look up the hosts for it and detect how many A records
++ *	we got back. -- SJF
++ */
++
++static unsigned long lookup_target(const char *target)
++{
++struct hostent	*hp;
++unsigned long	ipaddr;
++int		naddr;
++
++	assert(target != 0);
++
++	/*----------------------------------------------------------------
++	 * JUST AN IP ADDRESS?
++	 *
++ 	 * This should be the usual case...
++	 */
++	if ( (ipaddr = inet_addr(target)) != INADDR_NONE )
++	{
++		return ntohl(ipaddr);
++	}
++
++	/*----------------------------------------------------------------
++	 * If it's not an IP address, it must be a name, so look it up in
++	 * the DNS. It's an error for this name to be unknown. Note that
++	 * if the name is known but there are no "A" records, this looks
++	 * like an "unknown" error. That's OK.
++	 */
++	if ( (hp = gethostbyname(target)) == 0 )
++	{
++		fprintf(stderr, "ERROR: cannot find target {%s} in DNS\n", target);
++		exit(1);
++	}
++
++	/*----------------------------------------------------------------
++	 * Now we have a name from DNS, so see how many address records
++	 * we actually got. If we have none then of course we're not going
++	 * to do *anything* useful, but if we get more than one we have
++	 * to 
++	 */
++	for (naddr = 0; hp->h_addr_list[naddr]; naddr++)
++	{
++		/* NOTHING */
++	}
++
++	if ( naddr == 0 )
++	{
++		fprintf(stderr, "ERROR: target {%s} has no Address records\n", target);
++		exit(1);
++	}
++
++	assert(hp->h_length == 4);	// must be IPv4
++
++	memcpy(&ipaddr, hp->h_addr_list[0], 4);
++
++	if ( naddr > 1 )
++	{
++	int	i;
++
++		for ( i = 0; i < naddr; i++ )
++		{
++		const char *addr = printable_ipaddr(hp->h_addr_list[i]);
++
++			if ( i == 0 )
++			{
++				printf("# Target %s has %d address records, using %s\n",
++					target, naddr, addr);
++			}
++			else
++			{
++				printf("# addr[%d]: %s\n", i, addr);
++			}
++		}
++	}
++	else
++	{
++		printf("# Target %s -> %s\n", target, printable_ipaddr(hp->h_addr_list[0]));
++	}
++
++
++	return ntohl(ipaddr);
++}
++
++
+ /* full_rblcheck
+  * Takes an IP address, and feeds it to rblcheck() for each defined
+  * RBL listing, handling output of results if necessary. */
+@@ -293,17 +396,17 @@
+ 	int count = 0;
+ 	char * response;
+ 	struct rbl * ptr;
++	char	addrbuf[32];
++
++	unsigned long ipaddr = lookup_target(addr);
++
++	a = (ipaddr >> 24) & 0xFF;
++	b = (ipaddr >> 16) & 0xFF;
++	c = (ipaddr >>  8) & 0xFF;
++	d = (ipaddr      ) & 0xFF;
+ 
+ 	for( ptr = rblsites; ptr != NULL; ptr = ptr->next )
+ 	{
+-		if( sscanf( addr, "%d.%d.%d.%d", &a, &b, &c, &d ) != 4
+-		  || a < 0 || a > 255 || b < 0 || b > 255 || c < 0 || c > 255
+-		  || d < 0 || d > 255 )
+-		{
+-			fprintf( stderr, "%s: warning: invalid address `%s'\n",
+-			  progname, addr );
+-			return 0;
+-		}
+ 		response = rblcheck( a, b, c, d, ptr->site, txt );
+ 		if( !quiet || response )
+			printf( "%s %s%s%s%s%s%s", addr,

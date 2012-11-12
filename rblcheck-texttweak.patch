@@ -1,0 +1,11 @@
+--- rblcheck-1.5/rblcheck.c.orig	Thu Nov  8 22:05:27 2001
++++ rblcheck-1.5/rblcheck.c		Thu Sep  5 17:30:17 2002
+@@ -308,7 +308,7 @@
+ 		if( !quiet || response )
+ 			printf( "%s %s%s%s%s%s%s", addr,
+ 			  ( !quiet && !response ? "not " : "" ),
+-			  ( !quiet ? "RBL filtered by " : "" ),
++			  ( !quiet ? "listed by " : "" ),
+ 			  ( !quiet ? ptr->site : "" ),
+ 			  ( txt && response && strlen( response ) && !quiet ?
+ 			    ": " : "" ),

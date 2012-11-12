@@ -1,0 +1,153 @@
+--- rblcheck.c.orig	2001-11-08 22:05:27.000000000 +0000
++++ rblcheck.c		2003-03-26 12:53:13.000000000 +0000
+@@ -64,13 +64,25 @@
+ #endif
+ 
+ #ifndef NS_GET16
+-#define NS_GET16(s, cp) { \
++#define NS_GET16(s, cp) do { \
+ 	register unsigned char *t_cp = (unsigned char *)(cp); \
+ 	(s) = ((unsigned short)t_cp[0] << 8) \
+ 	    | ((unsigned short)t_cp[1]) \
+ 	    ; \
+ 	(cp) += NS_INT16SZ; \
+-}
++} while (0)
++#endif
++
++#ifndef NS_GET32
++#define NS_GET32(l, cp) do { \
++	register unsigned char *t_cp = (unsigned char *)(cp); \
++	(l) = ((unsigned long)t_cp[0] << 24) \
++	    | ((unsigned long)t_cp[1] << 16) \
++	    | ((unsigned long)t_cp[2] << 8) \
++	    | ((unsigned long)t_cp[3]) \
++	    ; \
++	(cp) += NS_INT32SZ; \
++} while (0)
+ #endif
+ 
+ #ifndef T_TXT
+@@ -195,6 +207,9 @@
+ 	const u_char * cend;
+ 	const u_char * rend;
+ 	int len;
++	int rectype, dummy, reclength;
++	int qid, qc, ac, nc, xc;
++	int q, curanswer;
+ 
+ 	/* 16 characters max in a dotted-quad address, plus 1 for null */
+ 	domain = ( char * )malloc( 17 + strlen( rbldomain ) );
+@@ -238,49 +253,72 @@
+ 		return result;
+ 	}
+ 
+-	/* Skip the header and the address we queried. */
+-	cp = answer + sizeof( HEADER );
+-	while( *cp != '\0' )
+-	{
+-		a = *cp++;
+-		while( a-- )
+-			cp++;
+-	}
+-
+-	/* This seems to be a bit of magic data that we need to
+-	   skip. I wish there were good online documentation
+-	   for programming for libresolv, so I'd know what I'm
+-	   skipping here. Anyone reading this, feel free to
+-	   enlighten me. */
+-	cp += 1 + NS_INT16SZ + NS_INT32SZ;
+-
+-	/* Skip the type, class and ttl. */
+-	cp += ( NS_INT16SZ * 2 ) + NS_INT32SZ;
+-
+-	/* Get the length and end of the buffer. */
+-	NS_GET16( c, cp );
+-	cend = cp + c;
+-
+-	/* Iterate over any multiple answers we might have. In
+-	   this context, it's unlikely, but anyway. */
+-	rp = result;
+-	rend = result + RESULT_SIZE - 1;
+-	while( cp < cend && rp < rend )
+-	{
+-		a = *cp++;
+-		if( a != 0 )
+-			for( b = a; b > 0 && cp < cend && rp < rend;
+-			  b-- )
++	/* Skip the header. */
++	cp = answer;
++	NS_GET16(qid, cp);
++	cp += 2; /* flags */
++	NS_GET16(qc, cp);
++	NS_GET16(ac, cp);
++	NS_GET16(nc, cp);
++	NS_GET16(xc, cp);
++
++	/* Skip the queries. */
++	q = 0;
++	while (q < qc && cp < answer + len) {
++		if (*cp > 63) { /* pointer */
++			cp += 6; /* skip pointer, class and type */
++			q++;
++		} else { /* label */
++			if (*cp == 0) {
++				cp += 5; /* skip nil, class and type */
++				q++;
++			} else
++				cp += *cp + 1; /* skip length and label */
++		}
++	}
++
++	/* cp should now be at the start of the first response */
++	curanswer = 0;
++	while (curanswer < ac) {
++		while (cp < answer + len) {
++			if (*cp > 63) { /* pointer */
++				cp += 2; /* skip pointer */
++				break;
++			} else { /* label */
++				if (*cp == 0) {
++					cp++;
++					break;
++				} else
++					cp += *cp + 1; /* skip length and label */
++			}
++		}
++		/* Get the record type, class, ttl, and length. */
++		NS_GET16( rectype, cp );
++		NS_GET16( dummy, cp );
++		NS_GET32( dummy, cp );
++		NS_GET16( reclength, cp );
++
++		/* Dump the contents of the record */
++		if (rectype != T_TXT) {
++			cp += reclength;
++			curanswer++;
++			continue;
++		}
++		cp++; /* skip TXT length byte */
++		cend = cp + reclength - 1;
++		rp = result;
++		rend = result + RESULT_SIZE - 1;
++		while( cp < cend && rp < rend )
++		{
++			if( *cp == '\n' || *cp == '"' || *cp == '\\' )
+ 			{
+-				if( *cp == '\n' || *cp == '"' ||
+-				  *cp == '\\' )
+-				{
+-					*rp++ = '\\';
+-				}
+-				*rp++ = *cp++;
++				*rp++ = '\\';
+ 			}
++			*rp++ = *cp++;
++		}
++		*rp = '\0';
++		return result;
+ 	}
+-	*rp = '\0';
+ 	return result;
+ }
+ 
