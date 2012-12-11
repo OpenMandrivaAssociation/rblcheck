@@ -75,3 +75,52 @@ install -m0644 rblcheckrc %{buildroot}%{_sysconfdir}/rblcheckrc
 %{_bindir}/rbl
 %{_bindir}/rblcheck
 %{_bindir}/origip-*
+
+
+%changelog
+* Tue Dec 07 2010 Oden Eriksson <oeriksson@mandriva.com> 1.5-14mdv2011.0
++ Revision: 614702
+- the mass rebuild of 2010.1 packages
+
+* Sat Dec 26 2009 Oden Eriksson <oeriksson@mandriva.com> 1.5-13mdv2010.1
++ Revision: 482519
+- don't hardcode rbl services
+- nuke dead rbl services
+
+* Tue Sep 08 2009 Thierry Vignaud <tv@mandriva.org> 1.5-12mdv2010.0
++ Revision: 433063
+- rebuild
+
+* Fri Aug 01 2008 Thierry Vignaud <tv@mandriva.org> 1.5-11mdv2009.0
++ Revision: 260091
+- rebuild
+
+* Fri Jul 25 2008 Thierry Vignaud <tv@mandriva.org> 1.5-10mdv2009.0
++ Revision: 247966
+- rebuild
+
+* Wed Jan 02 2008 Olivier Blin <oblin@mandriva.com> 1.5-8mdv2008.1
++ Revision: 140744
+- restore BuildRoot
+
+  + Thierry Vignaud <tv@mandriva.org>
+    - kill re-definition of %%buildroot on Pixel's request
+    - fix summary-ended-with-dot
+
+
+* Mon Feb 05 2007 Oden Eriksson <oeriksson@mandriva.com> 1.5-8mdv2007.0
++ Revision: 116377
+- Import rblcheck
+
+* Mon Feb 05 2007 Oden Eriksson <oeriksson@mandriva.com> 1.5-8mdv2007.1
+- sync with fedora extras (1.5-12)
+
+* Tue Jun 27 2006 Oden Eriksson <oeriksson@mandriva.com> 1.5-7mdv2007.0
+- rebuild
+
+* Wed May 11 2005 Oden Eriksson <oeriksson@mandriva.com> 1.5-6mdk
+- added one x86_86 fix
+
+* Sat Oct 16 2004 Oden Eriksson <oeriksson@mandrakesoft.com> 1.5-5mdk
+- rpmbuildupdated
+
