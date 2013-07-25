@@ -1,7 +1,9 @@
+%define __noautoreq '.*/bin/awk|.*/bin/gawk'
+
 Summary:	A program for performing checks against RBL-style blacklists
 Name:		rblcheck
 Version:	1.5
-Release:	%mkrel 14
+Release:	%mkrel 15
 License:	GPL
 Group:		Networking/Other
 URL:		http://rblcheck.sourceforge.net/
