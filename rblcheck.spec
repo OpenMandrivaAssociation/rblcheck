@@ -6,7 +6,7 @@ Version:	1.5
 Release:	16
 License:	GPL
 Group:		Networking/Other
-URL:		http://rblcheck.sourceforge.net/
+URL:		https://rblcheck.sourceforge.net/
 Source0:	%{name}-%{version}.tar.bz2
 Source1:	rblcheckrc
 # Change the text "RBL filtered by" to "listed by"
