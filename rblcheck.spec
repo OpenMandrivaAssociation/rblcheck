@@ -22,6 +22,11 @@ Patch2:		rblcheck-txt.patch
 Patch3:		rblcheck-names.patch
 # Compile fix for x86_64 systems
 Patch4:		rblcheck-1.5-res_query.patch
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	docbook-utils
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
